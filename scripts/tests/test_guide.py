@@ -330,22 +330,23 @@ def flow_control():
     return guide.Guide.load(GUIDES_DIR / "flow-control")
 
 
-def test_nightly_crds_use_env_sh_release_urls(flow_control):
+def test_nightly_crds_use_env_sh_installer(flow_control):
     out = flow_control.emit(
         ["env", "prerequisites.crds"], variables=NIGHTLY_VARS, contexts=["ci"]
     )
-    # env.sh computes GAIE_URL/ROUTER_RELEASE_URL so that `latest` resolves to
-    # the releases/latest/download path shape; hand-built
-    # releases/download/${VERSION} URLs 404 on `latest` (issue #2341).
-    assert "gateway-api-inference-extension/${GAIE_URL}/v1-manifests.yaml" in out
+    # env.sh owns GAIE installation so it can both resolve `latest` correctly
+    # and avoid applying a CRD that GKE's addon will immediately restore.
+    assert "source ${REPO_ROOT}/guides/env.sh" in out
+    assert "install_gaie_crds" in out
     assert "llm-d-router/${ROUTER_RELEASE_URL}/manifests.yaml" in out
     assert "releases/download/${GAIE_VERSION}" not in out
 
 
-def test_pod_snapshot_uses_env_sh_release_url():
+def test_pod_snapshot_uses_env_sh_installer():
     snapshot = guide.Guide.load(GUIDES_DIR / "pod-snapshot")
     out = snapshot.emit(["env", "prerequisites.gaie"])
-    assert "gateway-api-inference-extension/${GAIE_URL}/v1-manifests.yaml" in out
+    assert "source ${REPO_ROOT}/guides/env.sh" in out
+    assert "install_gaie_crds" in out
     assert "releases/download/${GAIE_VERSION}" not in out
 
 

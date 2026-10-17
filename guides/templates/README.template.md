@@ -70,7 +70,7 @@ Install the Gateway API Inference Extension CRDs:
 <!-- guide:prerequisites.gaie start -->
 ```bash
 # GAIE_URL is automatically calculated from GAIE_VERSION at ${REPO_ROOT}/guides/env.sh
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/${GAIE_URL}/v1-manifests.yaml
+install_gaie_crds
 ```
 <!-- guide:prerequisites.gaie end -->
 

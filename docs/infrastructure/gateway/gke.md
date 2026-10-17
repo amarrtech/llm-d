@@ -37,7 +37,7 @@ On GKE versions earlier than `1.34.0-gke.1626000`, install the Inference Extensi
 
 ```bash
 # GAIE_URL is automatically calculated from GAIE_VERSION at ${REPO_ROOT}/guides/env.sh
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/${GAIE_URL}/v1-manifests.yaml
+install_gaie_crds
 ```
 
 Verify the APIs are available:

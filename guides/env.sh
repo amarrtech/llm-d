@@ -21,6 +21,32 @@ if [[ $GAIE_VERSION == "latest" ]]; then
 else
   export GAIE_URL=releases/download/${GAIE_VERSION}
 fi
+
+# Install the requested Gateway API Inference Extension CRDs unless the
+# cluster reports that GKE's gateway-api-crds addon owns them. Applying an
+# upstream manifest over that managed CRD appears to succeed, but GKE restores
+# its bundled schema shortly afterwards.
+install_gaie_crds() {
+  local crd_name="inferencepools.inference.networking.k8s.io"
+  local gke_component
+  local gke_bundle_version
+
+  gke_component=$(kubectl get crd "${crd_name}" \
+    -o 'jsonpath={.metadata.annotations.components\.gke\.io/component-name}' \
+    2>/dev/null || true)
+
+  if [[ "${gke_component}" == "gateway-api-crds" ]]; then
+    gke_bundle_version=$(kubectl get crd "${crd_name}" \
+      -o 'jsonpath={.metadata.annotations.inference\.networking\.k8s\.io/bundle-version}' \
+      2>/dev/null || true)
+    printf 'GKE manages the InferencePool CRD; skipping GAIE %s apply (effective bundle: %s).\n' \
+      "${GAIE_VERSION}" "${gke_bundle_version:-unknown}"
+    return 0
+  fi
+
+  kubectl apply -f \
+    "https://github.com/kubernetes-sigs/gateway-api-inference-extension/${GAIE_URL}/v1-manifests.yaml"
+}
 # Controls which release of llm-d/llm-router to grab CRDs from. Used in flowcontrol guide
 export ROUTER_RELEASE_VERSION=${ROUTER_RELEASE_VERSION:-latest}
 if [[ $ROUTER_RELEASE_VERSION == "latest" ]]; then
